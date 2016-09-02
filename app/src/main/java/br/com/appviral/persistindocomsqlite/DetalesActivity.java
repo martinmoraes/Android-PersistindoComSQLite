@@ -30,7 +30,7 @@ public class DetalesActivity extends AppCompatActivity {
         etEmail = (EditText) findViewById(R.id.etEMail);
 
         if(operacao.equals("alterar")){
-            Pessoa pessoa = AdaptadorListView.getPessoa(posicao);
+            Pessoa pessoa = PessoaDAO.listaPessoas.get(posicao);
             etNome.setText(pessoa.nome);
             etFone.setText(pessoa.fone);
             etEmail.setText(pessoa.email);
@@ -40,18 +40,16 @@ public class DetalesActivity extends AppCompatActivity {
 
 
     public void salvar(View view) {
-
         if (operacao.equals("inserir")) {
             Pessoa umaPessoa = new Pessoa();
             umaPessoa.nome = etNome.getText().toString();
             umaPessoa.fone = etFone.getText().toString();
             umaPessoa.email = etEmail.getText().toString();
-            if (pessoaDAO.alterar(umaPessoa)) {
-                AdaptadorListView.alteraPessoa(umaPessoa);
+            if (pessoaDAO.inserir(umaPessoa)) {
                 Toast.makeText(this, "Salvo com sucesso!", Toast.LENGTH_SHORT).show();
-                etNome.setText("");
-                etFone.setText("");
-                etEmail.setText("");
+//                etNome.setText("");
+//                etFone.setText("");
+//                etEmail.setText("");
             } else {
                 Toast.makeText(this, "Operação não realizada!", Toast.LENGTH_SHORT).show();
             }
@@ -65,7 +63,6 @@ public class DetalesActivity extends AppCompatActivity {
             umaPessoa.fone = etFone.getText().toString();
             umaPessoa.email = etEmail.getText().toString();
             if (pessoaDAO.alterar(umaPessoa)) {
-                AdaptadorListView.alteraPessoa(umaPessoa);
                 Toast.makeText(this, "Salvo com sucesso!", Toast.LENGTH_SHORT).show();
                 etNome.setText("");
                 etFone.setText("");
@@ -74,24 +71,18 @@ public class DetalesActivity extends AppCompatActivity {
                 Toast.makeText(this, "Operação não realizada!", Toast.LENGTH_SHORT).show();
             }
         }
-
+        finish();
     }
 
     public void excluir(View view) {
         if(operacao.equals("alterar")){
             if ( pessoaDAO.excluir(id)) {
-                AdaptadorListView.removePessoa(posicao);
                 Toast.makeText(this, "Excluido com sucesso!", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
                 Toast.makeText(this, "Operação não realizada!", Toast.LENGTH_SHORT).show();
             }
-
-
-
-
         }
-
     }
 
     public void fechar(View view) {

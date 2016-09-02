@@ -16,13 +16,15 @@ public class PessoaDAO {
 
     Context context;
     DBSQLite dbsqLite;
+    public static ArrayList<Pessoa> listaPessoas;
 
-    public PessoaDAO(Context context){
+    public PessoaDAO(Context context) {
         this.context = context;
         dbsqLite = new DBSQLite(context);
+        listar();
     }
 
-    public Long inserir(Pessoa pessoa){
+    public boolean inserir(Pessoa pessoa) {
         SQLiteDatabase db = dbsqLite.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -31,10 +33,14 @@ public class PessoaDAO {
         values.put(Pessoa.CAMPO_EMAIL, pessoa.email);
         Long id = db.insert(Pessoa.TABELA, null, values);
         db.close();
-        return id;
+        if (id > 0) {
+            pessoa.id = id;
+            listaPessoas.add(pessoa);
+        }
+        return id > 0;
     }
 
-    public boolean alterar(Pessoa pessoa){
+    public boolean alterar(Pessoa pessoa) {
         SQLiteDatabase db = dbsqLite.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -45,24 +51,30 @@ public class PessoaDAO {
 
         int id = db.update(Pessoa.TABELA, values, whare, new String[]{String.valueOf(pessoa.id)});
         db.close();
-        return id > 0 ? true : false;
+        if (id > 0)
+            listaPessoas.set(listaPessoas.indexOf(localizaPessoaPorId(pessoa.id)), pessoa);
+        return id > 0;
     }
 
-    public boolean excluir(Pessoa pessoa){
+    public boolean excluir(Pessoa pessoa) {
         return excluir(pessoa.id);
     }
 
-    public boolean excluir(Long id){
+    public boolean excluir(Long id) {
         SQLiteDatabase db = dbsqLite.getWritableDatabase();
         String whare = Pessoa.CAMPO_ID + " = ?";
-        int ret = db.delete(Pessoa.TABELA,whare,new String[]{String.valueOf(id)});
+        int ret = db.delete(Pessoa.TABELA, whare, new String[]{String.valueOf(id)});
         db.close();
-        return ret > 0 ? true : false;
+
+        if (ret > 0)
+            listaPessoas.remove(localizaPessoaPorId(id));
+
+        return ret > 0;
     }
 
-    public ArrayList<Pessoa> listar(){
+    public void listar() {
         SQLiteDatabase db = dbsqLite.getReadableDatabase();
-        ArrayList<Pessoa> lista = new ArrayList<>();
+        listaPessoas = new ArrayList<>();
 
         String selectQuery = "SELECT  " +
                 Pessoa.CAMPO_ID + "," +
@@ -71,20 +83,26 @@ public class PessoaDAO {
                 Pessoa.CAMPO_EMAIL +
                 " FROM " + Pessoa.TABELA;
 
-        Cursor cursor = db.rawQuery(selectQuery,null);
+        Cursor cursor = db.rawQuery(selectQuery, null);
         Pessoa umaPessoa;
 
-        if(cursor.moveToFirst()){
-            do{
+        if (cursor.moveToFirst()) {
+            do {
                 umaPessoa = new Pessoa();
                 umaPessoa.id = cursor.getLong(0);
                 umaPessoa.nome = cursor.getString(1);
                 umaPessoa.fone = cursor.getString(2);
                 umaPessoa.email = cursor.getString(3);
-                lista.add(umaPessoa);
-            }while (cursor.moveToNext());
+                listaPessoas.add(umaPessoa);
+            } while (cursor.moveToNext());
             db.close();
         }
-        return lista;
+    }
+
+    public Pessoa localizaPessoaPorId(long id) {
+        for (Pessoa umaPessoa : listaPessoas)
+            if (umaPessoa.id == id)
+                return umaPessoa;
+        return null;
     }
 }
